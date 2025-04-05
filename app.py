@@ -24,7 +24,7 @@ api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 # Upstox API configuration
 API_BASE_URL = os.getenv('UPSTOX_API_URL', 'https://api.upstox.com/v2')
 ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiI2VkJGNlYiLCJqdGkiOiI2N2YxMzQ3NmQxOWRlNzJiZWNjNGNlNDkiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaWF0IjoxNzQzODYwODU0LCJpc3MiOiJ1ZGFwaS1nYXRld2F5LXNlcnZpY2UiLCJleHAiOjE3NDM4OTA0MDB9.VO64nBhf3bDpJuh1BpBdsdBm9WMZ78Qj_PdCUq39vdE'
-REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '30'))  # seconds
+REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '30'))
 
 if not ACCESS_TOKEN:
     logger.warning("UPSTOX_ACCESS_TOKEN environment variable not set")
@@ -83,14 +83,6 @@ def get_profile():
             headers=get_headers(),
             timeout=REQUEST_TIMEOUT
         )
-        
-        if response.status_code == 200:
-            profile_data = response.json()
-            return jsonify({
-                'name': profile_data.get('data', {}).get('user_name'),
-                'email': profile_data.get('data', {}).get('email'),
-                'exchanges': profile_data.get('data', {}).get('exchanges')
-            }), 200
         return handle_response(response)
     except requests.exceptions.RequestException as e:
         logger.error(f"Profile error: {str(e)}")
@@ -129,7 +121,7 @@ def get_holdings():
 @api_v1.route('/orders', methods=['GET'])
 @token_required
 def get_orders():
-    """Get order list"""
+    """Get all orders"""
     try:
         response = requests.get(
             f'{API_BASE_URL}/order/retrieve/all',
@@ -141,10 +133,10 @@ def get_orders():
         logger.error(f"Orders error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/order/<order_id>', methods=['GET'])
+@api_v1.route('/orders/<order_id>', methods=['GET'])
 @token_required
 def get_order(order_id):
-    """Get order details"""
+    """Get specific order details"""
     try:
         response = requests.get(
             f'{API_BASE_URL}/order/details',
@@ -157,16 +149,16 @@ def get_order(order_id):
         logger.error(f"Order details error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/order/place', methods=['POST'])
+@api_v1.route('/orders', methods=['POST'])
 @token_required
 def place_order():
     """Place new order"""
     try:
         data = request.json
         required_fields = ['instrument_token', 'quantity', 'order_type', 'product', 'transaction_type']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing {field}'}), 400
+        
+        if missing := [field for field in required_fields if field not in data]:
+            return jsonify({'error': f'Missing fields: {", ".join(missing)}'}), 400
 
         if data['product'] not in PRODUCT_MAP:
             return jsonify({'error': 'Invalid product type'}), 400
@@ -197,15 +189,12 @@ def place_order():
         logger.error(f"Place order error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/order/modify', methods=['PUT'])
+@api_v1.route('/orders/<order_id>', methods=['PUT'])
 @token_required
-def modify_order():
+def modify_order(order_id):
     """Modify existing order"""
     try:
         data = request.json
-        if 'order_id' not in data:
-            return jsonify({'error': 'Missing order_id'}), 400
-
         valid_fields = ['quantity', 'price', 'order_type', 'validity', 
                        'disclosed_quantity', 'trigger_price', 'product']
         modified_data = {k: v for k, v in data.items() if k in valid_fields}
@@ -215,10 +204,10 @@ def modify_order():
                 return jsonify({'error': 'Invalid product type'}), 400
             modified_data['product'] = PRODUCT_MAP[modified_data['product']]
 
-        logger.info(f"Modifying order {data['order_id']}: {modified_data}")
+        logger.info(f"Modifying order {order_id}: {modified_data}")
         response = requests.put(
             f'{API_BASE_URL}/order/modify',
-            json={'order_id': data['order_id'], **modified_data},
+            json={'order_id': order_id, **modified_data},
             headers=get_headers(),
             timeout=REQUEST_TIMEOUT
         )
@@ -227,15 +216,11 @@ def modify_order():
         logger.error(f"Modify order error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/order/cancel', methods=['DELETE'])
+@api_v1.route('/orders/<order_id>', methods=['DELETE'])
 @token_required
-def cancel_order():
+def cancel_order(order_id):
     """Cancel order"""
     try:
-        order_id = request.args.get('order_id')
-        if not order_id:
-            return jsonify({'error': 'Missing order_id'}), 400
-
         logger.info(f"Cancelling order {order_id}")
         response = requests.delete(
             f'{API_BASE_URL}/order/cancel',
@@ -253,8 +238,7 @@ def cancel_order():
 def get_market_quote():
     """Get market quotes"""
     try:
-        instrument_key = request.args.get('instrument_key')
-        if not instrument_key:
+        if not (instrument_key := request.args.get('instrument_key')):
             return jsonify({'error': 'Missing instrument_key'}), 400
 
         response = requests.get(
@@ -283,7 +267,7 @@ def get_funds():
         logger.error(f"Funds error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/health', methods=['GET'])
+@api_v1.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     status = {
@@ -301,7 +285,7 @@ def health_check():
             )
             status['upstox_status'] = 'connected'
         except Exception as e:
-            status['upstox_status'] = f'error: {str(e)}'
+            status['upstox_status'] = f'connection error: {str(e)}'
     
     return jsonify(status)
 

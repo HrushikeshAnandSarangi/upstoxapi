@@ -23,7 +23,7 @@ api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
 # Upstox API configuration
 API_BASE_URL = os.getenv('UPSTOX_API_URL', 'https://api.upstox.com/v2')
-ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiI2VkJGNlYiLCJqdGkiOiI2N2YxMzQ3NmQxOWRlNzJiZWNjNGNlNDkiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaWF0IjoxNzQzODYwODU0LCJpc3MiOiJ1ZGFwaS1nYXRld2F5LXNlcnZpY2UiLCJleHAiOjE3NDM4OTA0MDB9.VO64nBhf3bDpJuh1BpBdsdBm9WMZ78Qj_PdCUq39vdE'
+ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiI2VkJGNlYiLCJqdGkiOiI2N2YxMzQ3NmQxOWRlNzJiZWNjNGNlNDkiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaWF0IjoxNzQzODYwODU0LCJpc3MiOiJ1ZGFwaS1nYXRld2F5LXNlcnZpY2UiLCJleHAiOjE3NDM4OTA0MDB9.VO64nBhf3bDpJuh1BpBdsdBm9WMZ78Qj_PdCUq39vdE'  # Replace with your actual access token
 REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '30'))
 
 if not ACCESS_TOKEN:
@@ -73,7 +73,11 @@ def handle_response(response):
         'message': error_msg
     }), response.status_code
 
-@api_v1.route('/profile', methods=['GET'])
+@app.route('/')
+def hello_world():
+    return "Hello, World! This is the root of the application."
+
+@app.route('/profile', methods=['GET'])
 @token_required
 def get_profile():
     """Get account holder's profile information"""
@@ -88,7 +92,7 @@ def get_profile():
         logger.error(f"Profile error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/portfolio', methods=['GET'])
+@app.route('/portfolio', methods=['GET'])
 @token_required
 def get_portfolio():
     """Get portfolio holdings"""
@@ -103,7 +107,7 @@ def get_portfolio():
         logger.error(f"Portfolio error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/holdings', methods=['GET'])
+@app.route('/holdings', methods=['GET'])
 @token_required
 def get_holdings():
     """Get long-term holdings"""
@@ -118,7 +122,7 @@ def get_holdings():
         logger.error(f"Holdings error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/orders', methods=['GET'])
+@app.route('/orders', methods=['GET'])
 @token_required
 def get_orders():
     """Get all orders"""
@@ -133,7 +137,7 @@ def get_orders():
         logger.error(f"Orders error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/orders/<order_id>', methods=['GET'])
+@app.route('/orders/<order_id>', methods=['GET'])
 @token_required
 def get_order(order_id):
     """Get specific order details"""
@@ -149,7 +153,7 @@ def get_order(order_id):
         logger.error(f"Order details error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/orders', methods=['POST'])
+@app.route('/orders', methods=['POST'])
 @token_required
 def place_order():
     """Place new order"""
@@ -189,7 +193,7 @@ def place_order():
         logger.error(f"Place order error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/orders/<order_id>', methods=['PUT'])
+@app.route('/orders/<order_id>', methods=['PUT'])
 @token_required
 def modify_order(order_id):
     """Modify existing order"""
@@ -216,7 +220,7 @@ def modify_order(order_id):
         logger.error(f"Modify order error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/orders/<order_id>', methods=['DELETE'])
+@app.route('/orders/<order_id>', methods=['DELETE'])
 @token_required
 def cancel_order(order_id):
     """Cancel order"""
@@ -233,7 +237,7 @@ def cancel_order(order_id):
         logger.error(f"Cancel order error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/market-quote', methods=['GET'])
+@app.route('/market-quote', methods=['GET'])
 @token_required
 def get_market_quote():
     """Get market quotes"""
@@ -252,7 +256,7 @@ def get_market_quote():
         logger.error(f"Market quote error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/funds', methods=['GET'])
+@app.route('/funds', methods=['GET'])
 @token_required
 def get_funds():
     """Get available funds"""
@@ -267,7 +271,7 @@ def get_funds():
         logger.error(f"Funds error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api_v1.route('/health', methods=['GET'])
+@app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     status = {

@@ -1,0 +1,7 @@
+Lib
+Scripts
+.env
+__pycache__
+api.log
+pyvenv.cfg
+greenlet.h

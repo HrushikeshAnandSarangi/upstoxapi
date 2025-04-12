@@ -23,7 +23,7 @@ api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 
 # Upstox API configuration
 API_BASE_URL = os.getenv('UPSTOX_API_URL', 'https://api.upstox.com/v2')
-ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiI1SEEyQlEiLCJqdGkiOiI2N2Y5ZjAzMzE3MjcyZDc0MjU0MjU1ZjIiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaWF0IjoxNzQ0NDMzMjAzLCJpc3MiOiJ1ZGFwaS1nYXRld2F5LXNlcnZpY2UiLCJleHAiOjE3NDQ0OTUyMDB9.ZrL3tMZoz5SMIcSQQfEq83ndc3Z2jTlBSDZPiD5zVKw'  # Replace with your actual access token
+ACCESS_TOKEN = ''  # Replace with your actual access token
 REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '30'))
 # Use the correct Upstox add funds URL
 UPSTOX_FUNDS_URL = os.getenv('UPSTOX_FUNDS_URL', 'https://upstox.com/funds/add')

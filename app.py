@@ -19,6 +19,8 @@ app = Flask(__name__)
 
 api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 API_BASE_URL = os.getenv('UPSTOX_API_URL', 'https://api.upstox.com/v2')
+ACCESS_TOKEN='eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiI1SEEyQlEiLCJqdGkiOiI2ODEyZmVlOTE1ODlmMTYwNzhkY2MwYWMiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaXNQbHVzUGxhbiI6ZmFsc2UsImlhdCI6MTc0NjA3NTM2OSwiaXNzIjoidWRhcGktZ2F0ZXdheS1zZXJ2aWNlIiwiZXhwIjoxNzQ2MTM2ODAwfQ.I701_GEOOan7jvZr_y07cF2fiU6FDapMLRH0LEZwi0U
+'
 REQUEST_TIMEOUT = int(os.getenv('REQUEST_TIMEOUT', '30'))
 UPSTOX_FUNDS_URL = os.getenv('UPSTOX_FUNDS_URL', 'https://upstox.com/funds/add')
 
